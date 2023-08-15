@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AddressController;
+use App\Http\Controllers\AddressListController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\WialonController;
 use Illuminate\Http\Request;
@@ -24,6 +25,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 // search address
 //Route::get('get-address', [AddressController::class,'getAddressData']);
 
+// update every 10 min addressList
+Route::get('update-address-list', [AddressListController::class, 'updateAddressList']);
 
 Route::prefix('wialon')->group(function () {
     Route::post('create-order', [WialonController::class, 'createOrder']);

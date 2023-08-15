@@ -9,7 +9,7 @@ use Carbon\Carbon;
 
 class WialonService
 {
-    public $token;
+    public $token = '2a6e9b192a9567ee39148d8ecab7dabcD897FE5D186814C6F208B90200403AE218B2E261';
     public $request;
     public $wialon;
     public $plate;
@@ -17,9 +17,8 @@ class WialonService
     public $reportResourceId = 600261056;
 
 
-    public function __construct($token, $request)
+    public function __construct($request)
     {
-        $this->token = $token;
         $this->request = $request;
 
         $this->wialonLogin();

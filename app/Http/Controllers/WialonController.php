@@ -5,13 +5,15 @@ namespace App\Http\Controllers;
 use App\Http\Requests\CreateOrderRequest;
 use App\Http\Requests\DriverInfoRequest;
 use App\Http\Resources\AddressFormtResource;
+use App\Http\Resources\AddressListResource;
+use App\Models\AddressList;
 use App\Service\WialonService;
 use Illuminate\Http\Request;
 
 
 class WialonController extends Controller
 {
-    public $token = '2a6e9b192a9567ee39148d8ecab7dabcD897FE5D186814C6F208B90200403AE218B2E261';
+
     public $resourceId = 2035;
 
     public $apiUrl = 'https://log.gps.az/api';
@@ -115,7 +117,7 @@ class WialonController extends Controller
         curl_setopt($ch, CURLOPT_URL, $this->apiUrl . '/route');
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, "data=$data&resourceId={$this->resourceId}&token={$this->token}&unitId=".$unitId);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, "data=$data&resourceId={$this->resourceId}&token={$this->token}&unitId=" . $unitId);
 
         $headers = array();
         $headers[] = 'Content-Type: application/x-www-form-urlencoded';
@@ -155,7 +157,7 @@ class WialonController extends Controller
      */
     public function getUnitList(Request $request)
     {
-        $wialonService = new WialonService($this->token, $request);
+        $wialonService = new WialonService($request);
 
         return $wialonService->getUnitList();
     }
@@ -170,7 +172,7 @@ class WialonController extends Controller
     {
 
         $unitId = $request->post('unit_id');
-        $wialonService = new WialonService($this->token, $request);
+        $wialonService = new WialonService($request);
 
         return $wialonService->getDriverInfo($unitId);
     }
@@ -193,10 +195,6 @@ class WialonController extends Controller
      */
     public function getAddressList(Request $request)
     {
-
-        $wialonService = new WialonService($this->token, $request);
-        return $wialonService->getAddresList();
-
-        return AddressFormtResource::collection($wialonService->getAddresList());
+        return AddressListResource::collection(AddressList::all())->resolve();
     }
 }
