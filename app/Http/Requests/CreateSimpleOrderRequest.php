@@ -10,7 +10,8 @@ class CreateSimpleOrderRequest extends FormRequest
     {
         return [
             'route_ids' => 'required|array',
-            'unit_id' => 'required|integer'
+            'unit_id' => 'required|integer',
+            'date' => 'date_format:d-m-Y'
         ];
     }
 

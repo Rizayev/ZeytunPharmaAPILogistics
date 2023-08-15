@@ -9,6 +9,7 @@ use App\Http\Resources\AddressFormtResource;
 use App\Http\Resources\AddressListResource;
 use App\Models\AddressList;
 use App\Service\WialonService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 
@@ -17,7 +18,8 @@ class WialonController extends Controller
     protected $token = '2a6e9b192a9567ee39148d8ecab7dabcD897FE5D186814C6F208B90200403AE218B2E261';
     public $resourceId = 2035;
 
-    public function getToken(){
+    public function getToken()
+    {
         return $this->token;
     }
 
@@ -34,88 +36,43 @@ class WialonController extends Controller
     {
 
         $unitId = $request->post('unit_id');
+        $date = $request->post('date');
+        $route_ids = $request->post('route_ids');
+
+        $addresList = AddressList::whereIn('id', $route_ids)->get();
+
+        $postData = [];
+
+        foreach ($addresList as $item) {
+            $postData[] =  [
+                "y" => $item->longitude,
+                "x" => $item->latitude,
+                "tf" => Carbon::parse($date)->timestamp,
+                "n" => $item->name,
+                "tt" => Carbon::parse($date)->addMinutes(10)->timestamp,
+                "f" => 0,
+                "r" => 100,
+                "p" => [
+                    "ut" => 600,
+                    "rep" => true,
+                    "w" => 0,
+                    "v" => 0,
+                    "pr" => "",
+                    "r" => [
+                        "m" => 0,
+                        "ndt" => 0,
+                        "t" => 0,
+                        "vt" => Carbon::parse($date)->timestamp,
+                    ],
+                    "criterions" => [
+                        "max_late" => 0,
+                        "use_unloading_late" => 0
+                    ]
+                ]
+            ];
+        }
 
 
-        $postData = [
-            [
-                "y" => 40.4042015076,
-                "x" => 49.9562988281,
-                "tf" => 1691060136,
-                "n" => "15 DHASGDKJDASJD",
-                "tt" => 1691070136,
-                "f" => 0,
-                "r" => 100,
-                "p" => [
-                    "ut" => 600,
-                    "rep" => true,
-                    "w" => 0,
-                    "v" => 0,
-                    "pr" => "",
-                    "r" => [
-                        "m" => 0,
-                        "ndt" => 1200,
-                        "t" => 4151,
-                        "vt" => 1690837751,
-                    ],
-                    "criterions" => [
-                        "max_late" => 0,
-                        "use_unloading_late" => 0
-                    ]
-                ]
-            ],
-            [
-                "y" => 40.4014587402,
-                "x" => 49.9735832214,
-                "tf" => 1691006401,
-                "n" => "1 dertrd",
-                "tt" => 1691092740,
-                "f" => 0,
-                "r" => 100,
-                "p" => [
-                    "ut" => 600,
-                    "rep" => true,
-                    "w" => 0,
-                    "v" => 0,
-                    "pr" => "",
-                    "r" => [
-                        "m" => 0,
-                        "ndt" => 1200,
-                        "t" => 1006,
-                        "vt" => 1690838757
-                    ],
-                    "criterions" => [
-                        "max_late" => 0,
-                        "use_unloading_late" => 0
-                    ]
-                ]
-            ],
-            [
-                "y" => 40.4475753,
-                "x" => 49.7995535,
-                "tf" => 1691006401,
-                "n" => "3 test",
-                "tt" => 1691092740,
-                "f" => 0,
-                "r" => 100,
-                "p" => [
-                    "ut" => 600,
-                    "rep" => true,
-                    "w" => 0,
-                    "v" => 0,
-                    "pr" => "",
-                    "r" => [
-                        "m" => 0,
-                        "ndt" => 1200,
-                        "t" => 1006,
-                        "vt" => 1690838757
-                    ],
-                    "criterions" => [
-                        "max_late" => 0,
-                        "use_unloading_late" => 0
-                    ]
-                ]
-            ],
-        ];
 
 
         $data = json_encode($postData, JSON_THROW_ON_ERROR);
@@ -156,6 +113,7 @@ class WialonController extends Controller
         curl_close($ch);
         return $result;
     }
+
     public function createOrderOld(CreateOrderRequest $request)
     {
 
