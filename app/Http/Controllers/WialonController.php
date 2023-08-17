@@ -93,25 +93,6 @@ class WialonController extends Controller
         }
         curl_close($ch);
         return $result;
-
-
-        $ch = curl_init();
-
-        curl_setopt($ch, CURLOPT_URL, 'https://log.gps.az/api/route');
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, "data=[{\"tf\":1490086800,\"tt\":1490115600,\"x\":8.30299097061,\"y\":52.6686602788,\"p\":{\"n\":\"Customer\",\"a\":\"К\nлары Цеткин ул., Минск, Беларусь\",\"r\":{\"vt\":1490101247}},\"n\":\"Order\nname\"}]&resourceId=2035&token=2a6e9b192a9567ee39148d8ecab7dabc387468D82E17A776BEA3097CD3B207431FEC49AB&unitId=4708");
-
-        $headers = array();
-        $headers[] = 'Content-Type: application/x-www-form-urlencoded';
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-
-        $result = curl_exec($ch);
-        if (curl_errno($ch)) {
-            echo 'Error:' . curl_error($ch);
-        }
-        curl_close($ch);
-        return $result;
     }
 
     public function createOrderOld(CreateOrderRequest $request)
