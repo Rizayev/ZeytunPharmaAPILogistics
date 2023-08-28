@@ -45,7 +45,7 @@ class WialonController extends Controller
         $postData = [];
 
         foreach ($addresList as $item) {
-            $postData[] =  [
+            $postData[] = [
                 "y" => $item->longitude,
                 "x" => $item->latitude,
                 "tf" => Carbon::parse($date)->timestamp,
@@ -72,8 +72,6 @@ class WialonController extends Controller
                 ]
             ];
         }
-
-
 
 
         $data = json_encode($postData, JSON_THROW_ON_ERROR);
@@ -272,10 +270,16 @@ class WialonController extends Controller
     }
 
 
-    public function updateUnitDescription(UpdateUnitDescriptionRequest $request){
+    /**
+     * @lrd:start
+     * Обновление guid в описание геозоны в Wialon Geofences
+     * @lrd:end
+     */
+    public function updateUnitDescription(UpdateUnitDescriptionRequest $request)
+    {
         $address_id = $request->post('address_id');
         $guid = $request->post('guid');
         $wialonService = new WialonService($request);
-        return $wialonService->updateUnitDescription($address_id,$guid);
+        return $wialonService->updateUnitDescription($address_id, $guid);
     }
 }
