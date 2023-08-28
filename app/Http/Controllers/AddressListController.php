@@ -56,34 +56,7 @@ class AddressListController extends Controller
     public function updateAddressList(Request $request)
     {
         $wialonService = new WialonService($request);
-        $result = $wialonService->getAddresList();
-
-        foreach ($result as $item) {
-          
-            AddressList::updateOrCreate([
-                'name' => $item['name'],
-            ], [
-                'name' => $item['name'],
-                'description' => $item['description'],
-                'guid' => $this->getUIDFromDescription($item['description']),
-                'longitude' => $item['longitude'],
-                'latitude' => $item['latitude'],
-                'data' => json_encode($item['data']),
-            ]);
-        }
-        return [
-            'status' => true,
-            'message' => 'Updated',
-        ];
+        return  $wialonService->updateAddressList();
     }
 
-    public function getUIDFromDescription($text){
-        // if it has [#ID] in description
-        if (preg_match('/\[#\w+]/', $text, $matches)) {
-            // remove [# and ]
-            $matches[0] = str_replace('[#', '', $matches[0]);
-            $matches[0] = str_replace(']', '', $matches[0]);
-            return $matches[0];
-        }
-    }
 }
