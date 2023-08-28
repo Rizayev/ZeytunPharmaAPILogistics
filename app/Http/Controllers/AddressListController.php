@@ -59,6 +59,7 @@ class AddressListController extends Controller
         $result = $wialonService->getAddresList();
 
         foreach ($result as $item) {
+          
             AddressList::updateOrCreate([
                 'name' => $item['name'],
             ], [
@@ -78,8 +79,11 @@ class AddressListController extends Controller
 
     public function getUIDFromDescription($text){
         // if it has [#ID] in description
-        if (preg_match('/\[#ID(\d+)\]/', $text, $matches)) {
-            return $matches[1];
+        if (preg_match('/\[#\w+]/', $text, $matches)) {
+            // remove [# and ]
+            $matches[0] = str_replace('[#', '', $matches[0]);
+            $matches[0] = str_replace(']', '', $matches[0]);
+            return $matches[0];
         }
     }
 }

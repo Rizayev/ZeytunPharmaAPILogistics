@@ -251,12 +251,25 @@ class WialonService
 
         // remove [#ID] from description
         $description = $data['d'];
-        $description = preg_replace('/\[#ID(\d+)\]/', "[#$guid]", $description);
+        $description = preg_replace('/\[#\w+]/', "[#$guid]", $description);
+        // if it has [#ID] twice in description remove one
+        if(substr_count($description, "[#$guid]") > 1){
+            $description = preg_replace('/\[#\w+]/', "", $description, 1);
+        } 
+
+        if($description == $data['d']){
+            $description = $data['d'] . " [#$guid]";
+        }
+
 
         $requestData['d'] = $description;
         $requestData['callMode'] = "update";
         $requestData['id'] = $address_id;
         $requestData['itemId'] = 2035;
+
+
+
+
 
         $ch = curl_init();
         $preData = 'params=' . json_encode($requestData,1) . '&sid=' . $this->sid;
