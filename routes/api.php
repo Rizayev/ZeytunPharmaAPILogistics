@@ -36,4 +36,7 @@ Route::prefix('wialon')->group(function () {
     Route::get('unit-list', [WialonController::class, 'getUnitList']);
     Route::get('route-list', [WialonController::class, 'getRouteList']);
     Route::get('address-list', [WialonController::class, 'getAddressList']);
+
+    // update unit description
+    Route::post('update-unit-description', [WialonController::class, 'updateUnitDescription']);
 });

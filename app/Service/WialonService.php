@@ -4,6 +4,7 @@ namespace App\Service;
 
 
 use App\Models\Address;
+use App\Models\AddressList;
 use App\Service\Wialon;
 use Carbon\Carbon;
 
@@ -198,6 +199,7 @@ class WialonService
         $data = json_decode($data, true);
         return $data;
     }
+
     public function getDriverInfo($unitId)
     {
         $params = compact('unitId');
@@ -227,14 +229,68 @@ class WialonService
         $data = $this->wialon->core_batch(json_encode($params, JSON_THROW_ON_ERROR));
         $data = json_decode($data, true);
         $addressList = [];
+
         foreach ($data[0] as $item) {
             $addressList[] = [
                 'name' => $item['n'],
                 'description' => $item['d'],
                 'longitude' => $item['p'][0]['y'],
                 'latitude' => $item['p'][0]['x'],
+                'data' => $item
             ];
         }
         return $addressList;
+    }
+
+    public function updateUnitDescription($address_id,$guid)
+    {
+        $address = AddressList::where('id', $address_id)->first();
+        $data = json_decode($address->data, 1);
+
+        $requestData = $data;
+
+        // remove [#ID] from description
+        $description = $data['d'];
+        $description = preg_replace('/\[#ID(\d+)\]/', "[#$guid]", $description);
+
+        $requestData['d'] = $description;
+        $requestData['callMode'] = "update";
+        $requestData['id'] = $address_id;
+        $requestData['itemId'] = 2035;
+
+        $ch = curl_init();
+        $preData = 'params=' . json_encode($requestData,1) . '&sid=' . $this->sid;
+
+        curl_setopt($ch, CURLOPT_URL, 'https://go.gps.az/wialon/ajax.html?svc=resource/update_zone&sid=' . $this->sid);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $preData);
+        curl_setopt($ch, CURLOPT_ENCODING, 'gzip, deflate');
+
+        $headers = array();
+        $headers[] = 'Authority: go.gps.az';
+        $headers[] = 'Accept: */*';
+        $headers[] = 'Accept-Language: ru-RU,ru;q=0.9,en-GB;q=0.8,en;q=0.7,en-US;q=0.6,es;q=0.5,cs;q=0.4,de;q=0.3,pt;q=0.2,und;q=0.1,tr;q=0.1,sk;q=0.1,fr;q=0.1,it;q=0.1,az;q=0.1,hi;q=0.1';
+        $headers[] = 'Cache-Control: no-cache';
+        $headers[] = 'Content-Type: application/x-www-form-urlencoded';
+        $headers[] = 'Cookie: gr=1; lang=en; _ga=GA1.1.303240973.1692343817; _gcl_au=1.1.1035102894.1692343817; _fbp=fb.1.1692343819389.342289633; cf_clearance=wvNVfLwCh.aVdx9RF58oZp7l_3uTD98UPvR4ASOGGr8-1692347199-0-1-9167b96d.289cb557.964b89bf-0.2.1692347199; _ga_PQV3EWLJ7X=GS1.1.1692960119.7.0.1692960129.0.0.0; _ga_L6NP7TDMF6=GS1.1.1693205461.20.0.1693205466.0.0.0; sessions=a1c8a6b5b3e164ebec57d868f7727670';
+        $headers[] = 'Origin: https://go.gps.az';
+        $headers[] = 'Pragma: no-cache';
+        $headers[] = 'Referer: https://go.gps.az/wialon/post.html';
+        $headers[] = 'Sec-Ch-Ua: \"Chromium\";v=\"116\", \"Not)A;Brand\";v=\"24\", \"Google Chrome\";v=\"116\"';
+        $headers[] = 'Sec-Ch-Ua-Mobile: ?0';
+        $headers[] = 'Sec-Ch-Ua-Platform: \"Windows\"';
+        $headers[] = 'Sec-Fetch-Dest: empty';
+        $headers[] = 'Sec-Fetch-Mode: cors';
+        $headers[] = 'Sec-Fetch-Site: same-origin';
+        $headers[] = 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36';
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+
+        $result = curl_exec($ch);
+        if (curl_errno($ch)) {
+            echo 'Error:' . curl_error($ch);
+        }
+        curl_close($ch);
+        return $result;
     }
 }

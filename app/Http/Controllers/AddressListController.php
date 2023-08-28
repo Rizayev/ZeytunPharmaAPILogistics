@@ -64,13 +64,22 @@ class AddressListController extends Controller
             ], [
                 'name' => $item['name'],
                 'description' => $item['description'],
+                'guid' => $this->getUIDFromDescription($item['description']),
                 'longitude' => $item['longitude'],
                 'latitude' => $item['latitude'],
+                'data' => json_encode($item['data']),
             ]);
         }
         return [
             'status' => true,
             'message' => 'Updated',
         ];
+    }
+
+    public function getUIDFromDescription($text){
+        // if it has [#ID] in description
+        if (preg_match('/\[#ID(\d+)\]/', $text, $matches)) {
+            return $matches[1];
+        }
     }
 }

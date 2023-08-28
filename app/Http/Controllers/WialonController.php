@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\CreateOrderRequest;
 use App\Http\Requests\CreateSimpleOrderRequest;
 use App\Http\Requests\DriverInfoRequest;
+use App\Http\Requests\UpdateUnitDescriptionRequest;
 use App\Http\Resources\AddressFormtResource;
 use App\Http\Resources\AddressListResource;
 use App\Models\AddressList;
@@ -268,5 +269,13 @@ class WialonController extends Controller
     public function getAddressList(Request $request)
     {
         return AddressListResource::collection(AddressList::all())->resolve();
+    }
+
+
+    public function updateUnitDescription(UpdateUnitDescriptionRequest $request){
+        $address_id = $request->post('address_id');
+        $guid = $request->post('guid');
+        $wialonService = new WialonService($request);
+        return $wialonService->updateUnitDescription($address_id,$guid);
     }
 }

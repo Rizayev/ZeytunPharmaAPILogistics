@@ -13,10 +13,11 @@ class AddressListResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'guid' => '',
+            'guid' => $this->guid,
             'description' => $this->description,
             'longitude' => $this->longitude,
             'latitude' => $this->latitude,
+            'data' => $this->data
         ];
     }
 }

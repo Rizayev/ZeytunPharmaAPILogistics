@@ -11,8 +11,10 @@ return new class extends Migration {
             $table->id();
             $table->string('name');
             $table->string('description')->nullable();
+            $table->string('guid')->nullable();
             $table->string('longitude');
             $table->string('latitude');
+            $table->longText('data');
             $table->timestamps();
         });
     }
