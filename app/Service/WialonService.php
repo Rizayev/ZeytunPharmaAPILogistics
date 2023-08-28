@@ -242,7 +242,8 @@ class WialonService
         return $addressList;
     }
 
-    public function updateAddressList(){
+    public function updateAddressList()
+    {
         $result = $this->getAddresList();
 
         foreach ($result as $item) {
@@ -265,7 +266,8 @@ class WialonService
     }
 
 
-    public function getUIDFromDescription($text){
+    public function getUIDFromDescription($text)
+    {
         // if it has [#ID] in description
         if (preg_match('/\[#\w+]/', $text, $matches)) {
             // remove [# and ]
@@ -275,7 +277,7 @@ class WialonService
         }
     }
 
-    public function updateUnitDescription($address_id,$guid)
+    public function updateUnitDescription($address_id, $guid)
     {
         $address = AddressList::where('id', $address_id)->first();
         $data = json_decode($address->data, 1);
@@ -286,11 +288,11 @@ class WialonService
         $description = $data['d'];
         $description = preg_replace('/\[#\w+]/', "[#$guid]", $description);
         // if it has [#ID] twice in description remove one
-        if(substr_count($description, "[#$guid]") > 1){
+        if (substr_count($description, "[#$guid]") > 1) {
             $description = preg_replace('/\[#\w+]/', "", $description, 1);
         }
 
-        if($description == $data['d']){
+        if ($description == $data['d']) {
             $description = $data['d'] . " [#$guid]";
         }
 
@@ -301,9 +303,8 @@ class WialonService
         $requestData['itemId'] = 2035;
 
 
-
         $ch = curl_init();
-        $preData = 'params=' . json_encode($requestData,1) . '&sid=' . $this->sid;
+        $preData = 'params=' . json_encode($requestData, 1) . '&sid=' . $this->sid;
 
         curl_setopt($ch, CURLOPT_URL, 'https://go.gps.az/wialon/ajax.html?svc=resource/update_zone&sid=' . $this->sid);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
