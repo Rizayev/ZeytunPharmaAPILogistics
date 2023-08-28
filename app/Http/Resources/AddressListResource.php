@@ -17,7 +17,7 @@ class AddressListResource extends JsonResource
             'description' => $this->description,
             'longitude' => $this->longitude,
             'latitude' => $this->latitude,
-            'data' => $this->data
+//            'data' => $this->data
         ];
     }
 }
