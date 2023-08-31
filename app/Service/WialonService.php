@@ -295,7 +295,8 @@ class WialonService
             }
 
         }
-
+        // trim
+        $description = trim($description);
         if ($description == $data['d']) {
             $description = $data['d'] . " [#$guid]";
         }
