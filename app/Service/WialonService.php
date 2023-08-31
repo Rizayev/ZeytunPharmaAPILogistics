@@ -289,7 +289,11 @@ class WialonService
         $description = preg_replace('/\[#\w+]/', "[#$guid]", $description);
         // if it has [#ID] twice in description remove one
         if (substr_count($description, "[#") > 1) {
-            $description = preg_replace('/\[#\w+]/', "", $description, 1);
+            // count for
+            for($i = 0; $i < substr_count($description, "[#") - 1; $i++) {
+                $description = preg_replace('/\[#\w+]/', "", $description, 1);
+            }
+
         }
 
         if ($description == $data['d']) {
