@@ -13,11 +13,23 @@ class AddressListResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'guid' => $this->guid,
+            'guid' => $this->getGuidAttribute(),
             'description' => $this->description,
             'longitude' => $this->longitude,
             'latitude' => $this->latitude,
 //            'data' => $this->data
         ];
+    }
+
+
+    // extract guid from description
+    public function getGuidAttribute()
+    {
+        $description = $this->description;
+        $guid = null;
+        if (preg_match('/\[#\w+]/', $description, $matches)) {
+            $guid = $matches[1];
+        }
+        return $guid;
     }
 }
