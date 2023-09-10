@@ -288,11 +288,9 @@ class WialonController extends Controller
      * @param Request $request
      * @return array
      * @throws \JsonException
-     * @lrd:start
-     * Получение отчета по дате
-     * @LRDparam from|date d-m-Y H:i:s
-     * @LRDparam to|date d-m-Y H:i:s
-     * @lrd:end
+
+     * @LRDparam from|date d-m-Y
+     * @LRDparam to|date d-m-Y
      */
     public function getReport(Request $request)
     {
