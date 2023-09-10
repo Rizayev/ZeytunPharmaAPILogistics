@@ -282,4 +282,47 @@ class WialonController extends Controller
         $wialonService = new WialonService($request);
         return $wialonService->updateUnitDescription($address_id, $guid);
     }
+
+
+    /**
+     * @param Request $request
+     * @return array
+     * @throws \JsonException
+     * @lrd:start
+     * Получение отчета по дате
+     * @LRDparam from|date d-m-Y H:i:s
+     * @LRDparam to|date d-m-Y H:i:s
+     * @lrd:end
+     */
+    public function getReport(Request $request)
+    {
+        $dateFrom = $request->get('from');
+        $dateTo = $request->get('to');
+        // validate
+        $request->validate([
+            'from' => 'required|date_format:d-m-Y',
+            'to' => 'required|date_format:d-m-Y',
+        ]);
+
+        $dateFrom = Carbon::parse($dateFrom)
+            ->setSecond(0)
+            ->setMinute(0)
+            ->setHour(0)
+            ->timestamp;
+        $dateTo = Carbon::parse($dateTo)
+            ->setSecond(59)
+            ->setMinute(59)
+            ->setHour(23)
+            ->timestamp;
+        // if diff between dates more than 1 month
+        if (Carbon::parse($dateFrom)->diffInDays(Carbon::parse($dateTo)) > 3) {
+            return [
+                'status' => 'error',
+                'message' => 'diff between dates more than 3 days'
+            ];
+        }
+
+        $wialonService = new WialonService($request);
+        return $wialonService->getReport();
+    }
 }

@@ -290,7 +290,7 @@ class WialonService
         // if it has [#ID] twice in description remove one
         if (substr_count($description, "[#") > 1) {
             // count for
-            for($i = 0; $i < substr_count($description, "[#") - 1; $i++) {
+            for ($i = 0; $i < substr_count($description, "[#") - 1; $i++) {
                 $description = preg_replace('/\[#\w+]/', "", $description, 1);
             }
 
@@ -343,5 +343,70 @@ class WialonService
         curl_close($ch);
         $this->updateAddressList();
         return $result;
+    }
+
+    public function getReport()
+    {
+
+
+        $params = [
+            //{"reportResourceId":2035,"reportTemplateId":3,"reportTemplate":null,"reportObjectId":2032,"reportObjectSecId":0,"interval":{"flags":16777216,"from":1693771200,"to":1693943999},"remoteExec":1,"reportObjectIdList":[]}
+            "reportResourceId" => 2035,
+            "reportTemplateId" => 3,
+            "reportTemplate" => null,
+            "reportObjectId" => 2032,
+            "reportObjectSecId" => 0,
+            "interval" => [
+                "flags" => 16777216,
+                "from" => 1693771200,
+                "to" => 1693943999
+            ],
+            "remoteExec" => 1,
+            "reportObjectIdList" => []
+        ];
+        // report_exec_report
+        $data = $this->wialon->report_exec_report(
+            json_encode($params, JSON_THROW_ON_ERROR)
+        );
+
+        $params = [];
+        $status = $this->wialon->report_get_report_status(
+            json_encode($params, JSON_THROW_ON_ERROR)
+        );
+
+        $firstData = '';
+        for ($i = 0; $i < 20; $i++) {
+            $status = $this->wialon->report_get_report_status(
+                json_encode($params, JSON_THROW_ON_ERROR)
+            );
+            $status_id = json_decode($status, 1)['status'];
+            if($status_id == 4){
+                $result = $this->wialon->report_apply_report_result(
+                    json_encode($params, JSON_THROW_ON_ERROR)
+                );
+                $firstData = json_decode($result,1);
+            }
+            sleep(1);
+        }
+
+        $params = [
+            "tableIndex" => 0,
+            "config" => [
+                "type" => "range",
+                "data" => [
+                    "from" => 0,
+                    "to" => 1000,
+                    "level" => 0,
+                    "unitInfo" => 1
+                ]
+            ]
+        ];
+        $data = $this->wialon->report_select_result_rows(
+            json_encode($params, JSON_THROW_ON_ERROR)
+        );
+        return [
+            'data' => $firstData,
+            'full_data' => json_decode($data,1),
+        ];
     }
 }

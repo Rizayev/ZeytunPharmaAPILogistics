@@ -39,4 +39,8 @@ Route::prefix('wialon')->group(function () {
 
     // update unit description
     Route::post('update-geofence-guid', [WialonController::class, 'updateUnitDescription']);
+
+
+    //get report
+    Route::get('get-report', [WialonController::class, 'getReport']);
 });
