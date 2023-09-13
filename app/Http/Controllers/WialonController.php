@@ -296,6 +296,7 @@ class WialonController extends Controller
     {
         $dateFrom = $request->get('from');
         $dateTo = $request->get('to');
+        $unit_id = $request->get('unit_id') ?? null;
         // validate
         $request->validate([
             'from' => 'required|date_format:d-m-Y',
@@ -323,7 +324,8 @@ class WialonController extends Controller
         $wialonService = new WialonService($request);
         return $wialonService->getReport(
             $dateFrom,
-            $dateTo
+            $dateTo,
+            $unit_id
         );
     }
 }

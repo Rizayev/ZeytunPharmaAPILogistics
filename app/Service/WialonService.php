@@ -345,7 +345,7 @@ class WialonService
         return $result;
     }
 
-    public function getReport($dateFrom,$dateTo)
+    public function getReport($dateFrom,$dateTo,$unit_id)
     {
 
 
@@ -404,9 +404,18 @@ class WialonService
         $data = $this->wialon->report_select_result_rows(
             json_encode($params, JSON_THROW_ON_ERROR)
         );
+        $full_data = json_decode($data,1);
+
+        if($unit_id){
+            foreach ($full_data as $data){
+                if($data['uid'] == $unit_id){
+                    return $data;
+                }
+            }
+        }
         return [
             'data' => $firstData,
-            'full_data' => json_decode($data,1),
+            'full_data' => $full_data
         ];
     }
 }
