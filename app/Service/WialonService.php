@@ -409,7 +409,15 @@ class WialonService
         if($unit_id){
             foreach ($full_data as $data){
                 if($data['uid'] == $unit_id){
-                    return $data;
+                    $itemIndex = $data['n'];
+                    $params = '{"tableIndex":3,"config":{"type":"row","data":{"rows":["'.$itemIndex.'"],"level":0,"unitInfo":1}}}';
+                    $rows = $this->wialon->report_select_result_rows(
+                        $params
+                    );
+                    return [
+                      'main_data' => $data,
+                      'rows' => $rows
+                    ];
                 }
             }
         }
