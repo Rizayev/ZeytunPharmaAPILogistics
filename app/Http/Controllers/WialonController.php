@@ -321,6 +321,9 @@ class WialonController extends Controller
         }
 
         $wialonService = new WialonService($request);
-        return $wialonService->getReport();
+        return $wialonService->getReport(
+            $dateFrom,
+            $dateTo
+        );
     }
 }

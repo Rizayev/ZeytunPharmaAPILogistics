@@ -345,7 +345,7 @@ class WialonService
         return $result;
     }
 
-    public function getReport()
+    public function getReport($dateFrom,$dateTo)
     {
 
 
@@ -358,8 +358,8 @@ class WialonService
             "reportObjectSecId" => 0,
             "interval" => [
                 "flags" => 16777216,
-                "from" => 1693771200,
-                "to" => 1693943999
+                "from" => $dateFrom,
+                "to" => $dateTo
             ],
             "remoteExec" => 1,
             "reportObjectIdList" => []
