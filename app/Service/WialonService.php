@@ -390,7 +390,7 @@ class WialonService
         }
 
         $params = [
-            "tableIndex" => 0,
+            "tableIndex" => 3, //testiq
             "config" => [
                 "type" => "range",
                 "data" => [
