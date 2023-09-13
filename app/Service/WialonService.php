@@ -416,7 +416,7 @@ class WialonService
                     );
                     return [
                       'main_data' => $data,
-                      'rows' => $rows
+                      'rows' => json_decode($rows,1)
                     ];
                 }
             }
