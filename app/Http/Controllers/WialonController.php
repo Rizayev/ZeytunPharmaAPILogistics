@@ -6,7 +6,7 @@ use App\Http\Requests\CreateOrderRequest;
 use App\Http\Requests\CreateSimpleOrderRequest;
 use App\Http\Requests\DriverInfoRequest;
 use App\Http\Requests\UpdateUnitDescriptionRequest;
-use App\Http\Resources\AddressFormtResource;
+
 use App\Http\Resources\AddressListResource;
 use App\Models\AddressList;
 use App\Service\WialonService;
@@ -35,6 +35,10 @@ class WialonController extends Controller
      */
     public function createOrder(CreateSimpleOrderRequest $request)
     {
+
+        if($this->checkOrderExists($request)) {
+            return $this->addOrderToExistsOrder($request);
+        }
 
         $unitId = $request->post('unit_id');
         $date = $request->post('date');
@@ -93,22 +97,32 @@ class WialonController extends Controller
         curl_close($ch);
         return $result;
     }
-
-    public function createOrderOld(CreateOrderRequest $request)
+    public function addOrderToExistsOrder(CreateSimpleOrderRequest $request)
     {
 
+        $postData = $this->checkOrderExists($request);
+
         $unitId = $request->post('unit_id');
+        $date = $request->post('date');
+        $route_ids = $request->post('route_ids');
+
+        $addresList = AddressList::whereIn('id', $route_ids)->get();
 
 
-        $postData = [
-            [
-                "y" => 40.4042015076,
-                "x" => 49.9562988281,
-                "tf" => 1691060136,
-                "n" => "15 DHASGDKJDASJD",
-                "tt" => 1691070136,
+
+        foreach ($addresList as $item) {
+            $postData['orders'][] = [
+                "uid" => 0,
+                "id" => 0,
+                'cnm' => 0,
+                "y" => $item->longitude,
+                "x" => $item->latitude,
+                "tf" => Carbon::parse($date)->timestamp,
+                "n" => $item->name,
+                "tt" => Carbon::parse($date)->addMinutes(10)->timestamp,
                 "f" => 0,
                 "r" => 100,
+                "u" => $unitId,
                 "p" => [
                     "ut" => 600,
                     "rep" => true,
@@ -116,109 +130,58 @@ class WialonController extends Controller
                     "v" => 0,
                     "pr" => "",
                     "r" => [
+                        "id" => $postData['uid'],
                         "m" => 0,
-                        "ndt" => 1200,
-                        "t" => 4151,
-                        "vt" => 1690837751,
+                        "ndt" => 0,
+                        "t" => 0,
+                        "vt" => Carbon::now()->addMinutes(10)->timestamp,
                     ],
                     "criterions" => [
                         "max_late" => 0,
                         "use_unloading_late" => 0
                     ]
-                ]
-            ],
-            [
-                "y" => 40.4014587402,
-                "x" => 49.9735832214,
-                "tf" => 1691006401,
-                "n" => "1 dertrd",
-                "tt" => 1691092740,
-                "f" => 0,
-                "r" => 100,
-                "p" => [
-                    "ut" => 600,
-                    "rep" => true,
-                    "w" => 0,
-                    "v" => 0,
-                    "pr" => "",
-                    "r" => [
-                        "m" => 0,
-                        "ndt" => 1200,
-                        "t" => 1006,
-                        "vt" => 1690838757
-                    ],
-                    "criterions" => [
-                        "max_late" => 0,
-                        "use_unloading_late" => 0
-                    ]
-                ]
-            ],
-            [
-                "y" => 40.4475753,
-                "x" => 49.7995535,
-                "tf" => 1691006401,
-                "n" => "3 test",
-                "tt" => 1691092740,
-                "f" => 0,
-                "r" => 100,
-                "p" => [
-                    "ut" => 600,
-                    "rep" => true,
-                    "w" => 0,
-                    "v" => 0,
-                    "pr" => "",
-                    "r" => [
-                        "m" => 0,
-                        "ndt" => 1200,
-                        "t" => 1006,
-                        "vt" => 1690838757
-                    ],
-                    "criterions" => [
-                        "max_late" => 0,
-                        "use_unloading_late" => 0
-                    ]
-                ]
-            ],
+                ],
+                "callMode" => "create",
+            ];
+        }
+
+
+        $params = json_encode($postData, JSON_THROW_ON_ERROR);
+
+
+
+        $wialon = new WialonService($request);
+//        return $params;
+        $token = $wialon->sid;
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, 'https://go.gps.az/wialon/ajax.html?svc=order/route_update&sid='.$token);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'authority: go.gps.az',
+            'accept: */*',
+            'accept-language: ru-RU,ru;q=0.9,en-GB;q=0.8,en;q=0.7,en-US;q=0.6,es;q=0.5,cs;q=0.4,de;q=0.3,pt;q=0.2,und;q=0.1,tr;q=0.1,sk;q=0.1,fr;q=0.1,it;q=0.1,az;q=0.1,hi;q=0.1',
+            'content-type: application/x-www-form-urlencoded',
+            'origin: https://go.gps.az',
+            'referer: https://go.gps.az/wialon/post.html',
+            'sec-ch-ua: "Google Chrome";v="117", "Not;A=Brand";v="8", "Chromium";v="117"',
+            'sec-ch-ua-mobile: ?0',
+            'sec-ch-ua-platform: "Windows"',
+            'sec-fetch-dest: empty',
+            'sec-fetch-mode: cors',
+            'sec-fetch-site: same-origin',
+            'user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36',
+            'accept-encoding: gzip',
+        ]);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, 'params='.$params.'&sid='.$token);
+
+        $result = curl_exec($ch);
+
+        curl_close($ch);
+        return [
+            'status' => 'success',
+            'message' => 'Order added to exists order'
         ];
-
-
-        $data = json_encode($postData, JSON_THROW_ON_ERROR);
-        $ch = curl_init();
-
-        curl_setopt($ch, CURLOPT_URL, $this->apiUrl . '/route');
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, "data=$data&resourceId={$this->resourceId}&token={$this->getToken()}&unitId=" . $unitId);
-
-        $headers = array();
-        $headers[] = 'Content-Type: application/x-www-form-urlencoded';
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-
-        $result = curl_exec($ch);
-        if (curl_errno($ch)) {
-            echo 'Error:' . curl_error($ch);
-        }
-        curl_close($ch);
-        return $result;
-
-
-        $ch = curl_init();
-
-        curl_setopt($ch, CURLOPT_URL, 'https://log.gps.az/api/route');
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, "data=[{\"tf\":1490086800,\"tt\":1490115600,\"x\":8.30299097061,\"y\":52.6686602788,\"p\":{\"n\":\"Customer\",\"a\":\"К\nлары Цеткин ул., Минск, Беларусь\",\"r\":{\"vt\":1490101247}},\"n\":\"Order\nname\"}]&resourceId=2035&token=2a6e9b192a9567ee39148d8ecab7dabc387468D82E17A776BEA3097CD3B207431FEC49AB&unitId=4708");
-
-        $headers = array();
-        $headers[] = 'Content-Type: application/x-www-form-urlencoded';
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-
-        $result = curl_exec($ch);
-        if (curl_errno($ch)) {
-            echo 'Error:' . curl_error($ch);
-        }
-        curl_close($ch);
-        return $result;
     }
 
     /**
@@ -253,10 +216,65 @@ class WialonController extends Controller
      * @lrd:start
      * Список всех роутов (заказов) на текущий момент.
      * @lrd:end
+     * @LRDparam unit_id
+     * @LRDparam from|date d-m-Y
+     * @LRDparam to|date d-m-Y
      */
-    public function getRouteList()
+    public function getRouteList(Request $request)
     {
-        return file_get_contents('https://log.gps.az/api/routes?resourceId=' . $this->resourceId . '&token=' . $this->getToken());
+        $url = 'https://log.gps.az/api/routes?resourceId=' . $this->resourceId . '&token=' . $this->getToken();
+        return file_get_contents($url);
+    }
+    public function getUnitRouteList($from,$to,$unit_id)
+    {
+
+        $dateFrom = Carbon::parse($from)
+            ->setSecond(0)
+            ->setMinute(0)
+            ->setHour(0)
+            ->timestamp;
+        $dateTo = Carbon::parse($to)
+            ->setSecond(59)
+            ->setMinute(59)
+            ->setHour(23)
+            ->timestamp;
+
+        $url = 'https://log.gps.az/api/routes?unitIds='.$unit_id.'&from='.$dateFrom.'&to='.$dateTo.'&resourceId=' . $this->resourceId . '&token=' . $this->getToken();
+
+        return file_get_contents($url);
+    }
+    public function checkOrderExists(CreateSimpleOrderRequest $request)
+    {
+        $unitId = $request->post('unit_id');
+        $date = $request->post('date');
+
+        $unitOrder = $this->getUnitRouteList($date,$date,$unitId);
+        $result = json_decode($unitOrder,true);
+
+        $orders = [];
+        if(isset($result['routes'][0]['orders'])){
+            $order = $result['routes'][0];
+            $orderId = $order['uid'];
+            $plate = $order['n'];
+
+            foreach ($order['orders'] as $item) {
+                $orders[] = [
+                    'id' => $item['id'],
+                ];
+            }
+        }else{
+            return null;
+        }
+        return [
+            'itemId' => $this->resourceId,
+            'orders' => $orders,
+            'uid' => $orderId,
+            'callMode' => 'update',
+            'exp' => 0,
+            'f' => 0,
+            'n' =>  $plate
+        ];
+
     }
 
     /**
