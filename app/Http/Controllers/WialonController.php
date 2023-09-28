@@ -12,6 +12,7 @@ use App\Models\AddressList;
 use App\Service\WialonService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 
 class WialonController extends Controller
@@ -36,7 +37,7 @@ class WialonController extends Controller
     public function createOrder(CreateSimpleOrderRequest $request)
     {
 
-        if($this->checkOrderExists($request)) {
+        if ($this->checkOrderExists($request)) {
             return $this->addOrderToExistsOrder($request);
         }
 
@@ -44,17 +45,27 @@ class WialonController extends Controller
         $date = $request->post('date');
         $route_ids = $request->post('route_ids');
 
-        $addresList = AddressList::whereIn('id', $route_ids)->get();
+        $addressLists = AddressList::whereIn('id', $route_ids)->get();
 
         $postData = [];
 
-        foreach ($addresList as $item) {
+        foreach ($addressLists as $item) {
             $postData[] = [
                 "y" => $item->longitude,
                 "x" => $item->latitude,
-                "tf" => Carbon::parse($date)->timestamp,
+                "tf" => Carbon::parse($date)
+                    ->timestamp,
                 "n" => $item->name,
-                "tt" => Carbon::parse($date)->addMinutes(10)->timestamp,
+                "tt" => Carbon::parse($date)
+                    ->setHour(
+                    // set current hour
+                        Carbon::now()->hour
+                    )
+                    ->setMinute(
+                    // set current minute
+                        Carbon::now()->minute
+                    )
+                    ->addMinutes(10)->timestamp,
                 "f" => 0,
                 "r" => 100,
                 "p" => [
@@ -62,12 +73,18 @@ class WialonController extends Controller
                     "rep" => true,
                     "w" => 0,
                     "v" => 0,
-                    "pr" => "",
                     "r" => [
                         "m" => 0,
                         "ndt" => 0,
                         "t" => 0,
-                        "vt" => Carbon::parse($date)->timestamp,
+                        "vt" => Carbon::parse($date)
+                            ->setHour(
+                                24 - Carbon::now()->hour
+                            )
+                            ->setMinute(
+                                60 - Carbon::now()->minute
+                            )
+                            ->timestamp,
                     ],
                     "criterions" => [
                         "max_late" => 0,
@@ -97,6 +114,7 @@ class WialonController extends Controller
         curl_close($ch);
         return $result;
     }
+
     public function addOrderToExistsOrder(CreateSimpleOrderRequest $request)
     {
 
@@ -108,10 +126,9 @@ class WialonController extends Controller
 
         $addresList = AddressList::whereIn('id', $route_ids)->get();
 
-
-
         foreach ($addresList as $item) {
-            $postData['orders'][] = [
+            $itemsToAdd = [
+//        $postData['orders'][] = [
                 "uid" => 0,
                 "id" => 0,
                 'cnm' => 0,
@@ -128,13 +145,19 @@ class WialonController extends Controller
                     "rep" => true,
                     "w" => 0,
                     "v" => 0,
-                    "pr" => "",
                     "r" => [
                         "id" => $postData['uid'],
                         "m" => 0,
                         "ndt" => 0,
                         "t" => 0,
-                        "vt" => Carbon::now()->addMinutes(10)->timestamp,
+                        "vt" => Carbon::parse($date)
+                            ->setHour(
+                                24 - Carbon::now()->hour
+                            )
+                            ->setMinute(
+                               60 - Carbon::now()->minute
+                            )
+                            ->timestamp,
                     ],
                     "criterions" => [
                         "max_late" => 0,
@@ -143,18 +166,20 @@ class WialonController extends Controller
                 ],
                 "callMode" => "create",
             ];
+            array_unshift($postData['orders'], $itemsToAdd);
         }
 
 
-        $params = json_encode($postData, JSON_THROW_ON_ERROR);
+        // revers orders
 
+        $params = json_encode($postData, JSON_THROW_ON_ERROR);
 
 
         $wialon = new WialonService($request);
 //        return $params;
         $token = $wialon->sid;
         $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, 'https://go.gps.az/wialon/ajax.html?svc=order/route_update&sid='.$token);
+        curl_setopt($ch, CURLOPT_URL, 'https://go.gps.az/wialon/ajax.html?svc=order/route_update&sid=' . $token);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
@@ -173,7 +198,7 @@ class WialonController extends Controller
             'user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36',
             'accept-encoding: gzip',
         ]);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, 'params='.$params.'&sid='.$token);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, 'params=' . $params . '&sid=' . $token);
 
         $result = curl_exec($ch);
 
@@ -225,7 +250,8 @@ class WialonController extends Controller
         $url = 'https://log.gps.az/api/routes?resourceId=' . $this->resourceId . '&token=' . $this->getToken();
         return file_get_contents($url);
     }
-    public function getUnitRouteList($from,$to,$unit_id)
+
+    public function getUnitRouteList($from, $to, $unit_id)
     {
 
         $dateFrom = Carbon::parse($from)
@@ -239,20 +265,21 @@ class WialonController extends Controller
             ->setHour(23)
             ->timestamp;
 
-        $url = 'https://log.gps.az/api/routes?unitIds='.$unit_id.'&from='.$dateFrom.'&to='.$dateTo.'&resourceId=' . $this->resourceId . '&token=' . $this->getToken();
+        $url = 'https://log.gps.az/api/routes?unitIds=' . $unit_id . '&from=' . $dateFrom . '&to=' . $dateTo . '&resourceId=' . $this->resourceId . '&token=' . $this->getToken();
 
         return file_get_contents($url);
     }
+
     public function checkOrderExists(CreateSimpleOrderRequest $request)
     {
         $unitId = $request->post('unit_id');
         $date = $request->post('date');
 
-        $unitOrder = $this->getUnitRouteList($date,$date,$unitId);
-        $result = json_decode($unitOrder,true);
+        $unitOrder = $this->getUnitRouteList($date, $date, $unitId);
+        $result = json_decode($unitOrder, true);
 
         $orders = [];
-        if(isset($result['routes'][0]['orders'])){
+        if (isset($result['routes'][0]['orders'])) {
             $order = $result['routes'][0];
             $orderId = $order['uid'];
             $plate = $order['n'];
@@ -262,7 +289,7 @@ class WialonController extends Controller
                     'id' => $item['id'],
                 ];
             }
-        }else{
+        } else {
             return null;
         }
         return [
@@ -272,7 +299,7 @@ class WialonController extends Controller
             'callMode' => 'update',
             'exp' => 0,
             'f' => 0,
-            'n' =>  $plate
+            'n' => $plate
         ];
 
     }
@@ -306,7 +333,6 @@ class WialonController extends Controller
      * @param Request $request
      * @return array
      * @throws \JsonException
-
      * @LRDparam from|date d-m-Y
      * @LRDparam to|date d-m-Y
      */

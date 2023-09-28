@@ -33,7 +33,6 @@ Route::prefix('wialon')->group(function () {
 
     Route::post('driver-details', [WialonController::class, 'getDriverInfo']);
 
-    Route::post('updateOrder', [WialonController::class, 'addOrderToExistUnitOrderList']);
 
     Route::get('unit-list', [WialonController::class, 'getUnitList']);
     Route::post('route-list', [WialonController::class, 'getRouteList']);
