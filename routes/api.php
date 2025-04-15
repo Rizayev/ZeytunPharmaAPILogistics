@@ -31,6 +31,7 @@ Route::get('update-address-list', [AddressListController::class, 'updateAddressL
 Route::prefix('wialon')->group(function () {
     Route::post('create-order', [WialonController::class, 'createOrder']);
 
+    Route::post('driver-list', [WialonController::class, 'getDriverInfo']);
     Route::post('driver-details', [WialonController::class, 'getDriverInfo']);
 
 

@@ -209,6 +209,26 @@ class WialonService
         return $data;
     }
 
+    public function getDriverList()
+    {
+        $params = array(
+            'spec' => array(
+                'itemsType' => 'avl_resource',
+                'propName' => 'sys_name',
+                'propValueMask' => '*',
+                'sortType' => 'sys_name'
+            ),
+            'force' => 1,
+            'from' => 0,
+            'to' => 0,
+            'flags' => 256
+        );
+
+        $data = $this->core_search_items(json_encode($params, JSON_THROW_ON_ERROR));
+        $data = json_decode($data, true);
+        return $data;
+    }
+
     public function getAddresList()
     {
 

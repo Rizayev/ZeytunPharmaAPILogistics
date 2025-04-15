@@ -235,6 +235,18 @@ class WialonController extends Controller
 
         return $wialonService->getDriverInfo($unitId);
     }
+    /**
+     * @lrd:start
+     * Список всех водителей
+     * @lrd:end
+     */
+    public function getDriverList(Request $request)
+    {
+
+        $wialonService = new WialonService($request);
+
+        return $wialonService->getDriverList();
+    }
 
 
     /**
