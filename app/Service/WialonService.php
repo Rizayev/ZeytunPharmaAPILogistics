@@ -223,10 +223,19 @@ class WialonService
             'to' => 0,
             'flags' => 256
         );
-
-        $data = $this->core_search_items(json_encode($params, JSON_THROW_ON_ERROR));
+        $data = $this->wialon->core_search_items(json_encode($params, JSON_THROW_ON_ERROR));
         $data = json_decode($data, true);
-        return $data;
+        //foreach $data['items']
+        $driverList = [];
+
+        foreach ($data['items'][0]['drvrs'] as $item) {
+            $driverList[] = [
+                'driver' => $item['n'],
+                'fin' => $item['jp']['FIN'] ?? '-',
+                'phone' => $item['p'],
+            ];
+        }
+        return $driverList;
     }
 
     public function getAddresList()
