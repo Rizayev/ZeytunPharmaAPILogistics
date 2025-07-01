@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Log;
 
 class WialonController extends Controller
 {
-    protected $token = '2a6e9b192a9567ee39148d8ecab7dabcD897FE5D186814C6F208B90200403AE218B2E261';
+    protected $token = '52dc43d2273dd95bf8a4e805313b97a36926FCCFF706A5DE68F9089C70BDB778B70D9CD3';
     public $resourceId = 2035;
 
     public function getToken()
